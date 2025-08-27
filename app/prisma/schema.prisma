@@ -1,0 +1,77 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ma/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/aiia_mvp/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  firstName    String   @map("first_name") @db.VarChar(100)
+  lastName     String   @map("last_name") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  watchlists   Watchlist[]
+  
+  @@map("users")
+}
+
+model Security {
+  symbol      String  @id @db.VarChar(10)
+  companyName String  @map("company_name") @db.VarChar(255)
+  sector      String? @db.VarChar(100)
+  marketCap   BigInt? @map("market_cap")
+  isActive    Boolean @default(true) @map("is_active")
+  
+  scores          Score[]
+  watchlistItems  WatchlistItem[]
+  
+  @@map("securities")
+}
+
+model Score {
+  id                   Int      @id @default(autoincrement())
+  symbol               String   @db.VarChar(10)
+  scoreValue           Decimal  @map("score_value") @db.Decimal(5,2)
+  calculatedAt         DateTime @default(now()) @map("calculated_at")
+  factorBreakdownJson  Json?    @map("factor_breakdown_json")
+  
+  security Security @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+  
+  @@map("scores")
+}
+
+model Watchlist {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WatchlistItem[]
+  
+  @@map("watchlists")
+}
+
+model WatchlistItem {
+  id          Int      @id @default(autoincrement())
+  watchlistId Int      @map("watchlist_id")
+  symbol      String   @db.VarChar(10)
+  addedAt     DateTime @default(now()) @map("added_at")
+  
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+  security  Security  @relation(fields: [symbol], references: [symbol], onDelete: Cascade)
+  
+  @@unique([watchlistId, symbol])
+  @@map("watchlist_items")
+}
