@@ -105,14 +105,14 @@ export class ApiClient {
   }
 
   async addToWatchlist(watchlistId: number, symbol: string): Promise<WatchlistItem> {
-    return this.request<WatchlistItem>(`/api/watchlists/${watchlistId}/items`, {
+    return this.request<WatchlistItem>(`/api/users/watchlists/${watchlistId}/items`, {
       method: 'POST',
       body: JSON.stringify({ symbol }),
     });
   }
 
   async removeFromWatchlist(watchlistId: number, symbol: string): Promise<void> {
-    return this.request<void>(`/api/watchlists/${watchlistId}/items/${symbol}`, {
+    return this.request<void>(`/api/users/watchlists/${watchlistId}/items/${symbol}`, {
       method: 'DELETE',
     });
   }
