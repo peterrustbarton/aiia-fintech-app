@@ -29,28 +29,7 @@ async def get_securities(
     
     securities = query.all()
     
-    # Add mock scores for securities without scores
-    for security in securities:
-        if not security.scores:
-            # Create mock score based on symbol hash for consistency
-            mock_score_value = 60 + (hash(security.symbol) % 35)  # 60-95 range
-            
-            mock_score = Score(
-                symbol=security.symbol,
-                score_value=mock_score_value,
-                factor_breakdown_json={
-                    "fundamental": mock_score_value * 0.4,
-                    "technical": mock_score_value * 0.3,
-                    "sentiment": mock_score_value * 0.2,
-                    "momentum": mock_score_value * 0.1,
-                    "explanation": {
-                        "recommendation": "Buy" if mock_score_value > 75 else "Hold",
-                        "strengths": ["Market position", "Financial health"],
-                        "concerns": ["Market volatility", "Competition"]
-                    }
-                }
-            )
-            security.scores = [mock_score]
+    # Securities without scores will show None for latest_score - handled by frontend
     
     return securities
 
@@ -69,24 +48,6 @@ async def get_security(
     if not security:
         raise HTTPException(status_code=404, detail="Security not found")
     
-    # Add mock score if no scores exist
-    if not security.scores:
-        mock_score_value = 60 + (hash(security.symbol) % 35)
-        mock_score = Score(
-            symbol=security.symbol,
-            score_value=mock_score_value,
-            factor_breakdown_json={
-                "fundamental": mock_score_value * 0.4,
-                "technical": mock_score_value * 0.3,
-                "sentiment": mock_score_value * 0.2,
-                "momentum": mock_score_value * 0.1,
-                "explanation": {
-                    "recommendation": "Buy" if mock_score_value > 75 else "Hold",
-                    "strengths": ["Market position", "Financial health"],
-                    "concerns": ["Market volatility", "Competition"]
-                }
-            }
-        )
-        security.scores = [mock_score]
+    # Securities without scores will show None for latest_score - handled by frontend
     
     return security
