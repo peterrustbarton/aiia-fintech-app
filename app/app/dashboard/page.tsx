@@ -18,7 +18,7 @@ export default function DashboardPage() {
       
       <main className="container mx-auto py-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Investment Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Investment Dashboard A</h1>
           <p className="text-muted-foreground">
             AI-powered security analysis and investment insights
           </p>
