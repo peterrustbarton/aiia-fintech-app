@@ -67,6 +67,11 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // DEBUG: Log the actual URL being called
+    console.log('🔍 API Request URL:', url);
+    console.log('🔍 Base URL:', this.baseUrl);
+    console.log('🔍 Endpoint:', endpoint);
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -75,12 +80,18 @@ export class ApiClient {
       ...options,
     });
 
+    console.log('🔍 Response Status:', response.status);
+    console.log('🔍 Response OK:', response.ok);
+
     if (!response.ok) {
       const error = await response.text();
+      console.error('🔍 API Error:', error);
       throw new Error(`API Error (${response.status}): ${error}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('🔍 Response Data (first item):', data[0] || 'No data');
+    return data;
   }
 
   // Securities endpoints
