@@ -1,243 +1,188 @@
 
-import { PrismaClient } from '@prisma/client'
+// AiiA Database Seed Script
+// Run with: yarn prisma db seed
 
-const prisma = new PrismaClient()
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('🌱 Starting database seeding...');
 
-  // Clear existing data (in reverse order due to foreign key constraints)
-  await prisma.watchlistItem.deleteMany()
-  await prisma.score.deleteMany()
-  await prisma.watchlist.deleteMany()
-  await prisma.security.deleteMany()
-  await prisma.user.deleteMany()
+  // Create sample users
+  const hashedPassword = await bcrypt.hash('password123', 12);
+  
+  const user1 = await prisma.user.upsert({
+    where: { email: 'john.investor@email.com' },
+    update: {},
+    create: {
+      email: 'john.investor@email.com',
+      passwordHash: hashedPassword,
+      firstName: 'John',
+      lastName: 'Investor',
+    },
+  });
 
-  // Create users
-  console.log('👤 Creating users...')
-  const users = await prisma.user.createMany({
-    data: [
-      {
-        email: 'john.doe@example.com',
-        passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewdBzIdnSvM2k/2C', // password: password123
-        firstName: 'John',
-        lastName: 'Doe'
-      },
-      {
-        email: 'jane.smith@example.com',
-        passwordHash: '$2b$12$6NLCqhIj9C9QGLDLwI.Y8eT7a7LuOQ6fG1Z7bHlLGMFcR3T6f7i8u', // password: password123
-        firstName: 'Jane',
-        lastName: 'Smith'
-      }
-    ]
-  })
-  console.log(`✅ Created ${users.count} users`)
+  const user2 = await prisma.user.upsert({
+    where: { email: 'sarah.trader@email.com' },
+    update: {},
+    create: {
+      email: 'sarah.trader@email.com',
+      passwordHash: hashedPassword,
+      firstName: 'Sarah',
+      lastName: 'Trader',
+    },
+  });
 
-  // Create securities
-  console.log('📈 Creating securities...')
-  const securities = await prisma.security.createMany({
-    data: [
-      {
-        symbol: 'AAPL',
-        companyName: 'Apple Inc.',
-        sector: 'Technology',
-        marketCap: BigInt('3000000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'MSFT',
-        companyName: 'Microsoft Corporation',
-        sector: 'Technology',
-        marketCap: BigInt('2800000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'GOOGL',
-        companyName: 'Alphabet Inc.',
-        sector: 'Technology',
-        marketCap: BigInt('1700000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'AMZN',
-        companyName: 'Amazon.com Inc.',
-        sector: 'Consumer Discretionary',
-        marketCap: BigInt('1500000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'TSLA',
-        companyName: 'Tesla Inc.',
-        sector: 'Consumer Discretionary',
-        marketCap: BigInt('800000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'META',
-        companyName: 'Meta Platforms Inc.',
-        sector: 'Technology',
-        marketCap: BigInt('750000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'NVDA',
-        companyName: 'NVIDIA Corporation',
-        sector: 'Technology',
-        marketCap: BigInt('1800000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'JPM',
-        companyName: 'JPMorgan Chase & Co.',
-        sector: 'Financials',
-        marketCap: BigInt('450000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'JNJ',
-        companyName: 'Johnson & Johnson',
-        sector: 'Healthcare',
-        marketCap: BigInt('420000000000'),
-        isActive: true
-      },
-      {
-        symbol: 'V',
-        companyName: 'Visa Inc.',
-        sector: 'Financials',
-        marketCap: BigInt('500000000000'),
-        isActive: true
-      }
-    ]
-  })
-  console.log(`✅ Created ${securities.count} securities`)
+  console.log('👥 Created users:', { user1: user1.email, user2: user2.email });
 
-  // Create scores for securities
-  console.log('🎯 Creating AI scores...')
-  const scores = await prisma.score.createMany({
-    data: [
-      {
-        symbol: 'AAPL',
-        scoreValue: 85.5,
-        factorBreakdownJson: { growth: 90, value: 75, momentum: 88, quality: 92, volatility: 70 }
-      },
-      {
-        symbol: 'MSFT',
-        scoreValue: 88.2,
-        factorBreakdownJson: { growth: 85, value: 80, momentum: 90, quality: 95, volatility: 75 }
-      },
-      {
-        symbol: 'GOOGL',
-        scoreValue: 82.1,
-        factorBreakdownJson: { growth: 88, value: 78, momentum: 85, quality: 87, volatility: 68 }
-      },
-      {
-        symbol: 'AMZN',
-        scoreValue: 79.8,
-        factorBreakdownJson: { growth: 92, value: 65, momentum: 82, quality: 85, volatility: 75 }
-      },
-      {
-        symbol: 'TSLA',
-        scoreValue: 75.3,
-        factorBreakdownJson: { growth: 95, value: 45, momentum: 88, quality: 70, volatility: 40 }
-      },
-      {
-        symbol: 'META',
-        scoreValue: 81.7,
-        factorBreakdownJson: { growth: 85, value: 72, momentum: 86, quality: 80, volatility: 65 }
-      },
-      {
-        symbol: 'NVDA',
-        scoreValue: 91.2,
-        factorBreakdownJson: { growth: 98, value: 70, momentum: 95, quality: 90, volatility: 60 }
-      },
-      {
-        symbol: 'JPM',
-        scoreValue: 83.4,
-        factorBreakdownJson: { growth: 70, value: 90, momentum: 85, quality: 88, volatility: 80 }
-      },
-      {
-        symbol: 'JNJ',
-        scoreValue: 86.9,
-        factorBreakdownJson: { growth: 65, value: 95, momentum: 80, quality: 95, volatility: 90 }
-      },
-      {
-        symbol: 'V',
-        scoreValue: 89.1,
-        factorBreakdownJson: { growth: 80, value: 85, momentum: 92, quality: 95, volatility: 85 }
-      }
-    ]
-  })
-  console.log(`✅ Created ${scores.count} AI scores`)
+  // Create 10 sample securities with realistic data
+  const securities = [
+    {
+      symbol: 'AAPL',
+      companyName: 'Apple Inc.',
+      sector: 'Technology',
+      marketCap: BigInt('3000000000000'), // $3T
+    },
+    {
+      symbol: 'MSFT',
+      companyName: 'Microsoft Corporation',
+      sector: 'Technology',
+      marketCap: BigInt('2800000000000'), // $2.8T
+    },
+    {
+      symbol: 'GOOGL',
+      companyName: 'Alphabet Inc.',
+      sector: 'Technology',
+      marketCap: BigInt('1700000000000'), // $1.7T
+    },
+    {
+      symbol: 'AMZN',
+      companyName: 'Amazon.com Inc.',
+      sector: 'Consumer Discretionary',
+      marketCap: BigInt('1500000000000'), // $1.5T
+    },
+    {
+      symbol: 'TSLA',
+      companyName: 'Tesla Inc.',
+      sector: 'Consumer Discretionary',
+      marketCap: BigInt('800000000000'), // $800B
+    },
+    {
+      symbol: 'NVDA',
+      companyName: 'NVIDIA Corporation',
+      sector: 'Technology',
+      marketCap: BigInt('1100000000000'), // $1.1T
+    },
+    {
+      symbol: 'JPM',
+      companyName: 'JPMorgan Chase & Co.',
+      sector: 'Financials',
+      marketCap: BigInt('450000000000'), // $450B
+    },
+    {
+      symbol: 'JNJ',
+      companyName: 'Johnson & Johnson',
+      sector: 'Healthcare',
+      marketCap: BigInt('420000000000'), // $420B
+    },
+    {
+      symbol: 'V',
+      companyName: 'Visa Inc.',
+      sector: 'Financials',
+      marketCap: BigInt('500000000000'), // $500B
+    },
+    {
+      symbol: 'WMT',
+      companyName: 'Walmart Inc.',
+      sector: 'Consumer Staples',
+      marketCap: BigInt('480000000000'), // $480B
+    },
+  ];
 
-  // Get user IDs for creating watchlists
-  const johnUser = await prisma.user.findUnique({ where: { email: 'john.doe@example.com' } })
-  const janeUser = await prisma.user.findUnique({ where: { email: 'jane.smith@example.com' } })
-
-  if (!johnUser || !janeUser) {
-    throw new Error('Users not found after creation')
+  for (const security of securities) {
+    await prisma.security.upsert({
+      where: { symbol: security.symbol },
+      update: {},
+      create: security,
+    });
   }
 
-  // Create watchlists
-  console.log('📋 Creating watchlists...')
-  const watchlists = await prisma.watchlist.createMany({
+  console.log('📊 Created securities:', securities.length);
+
+  // Create AI-generated scores for each security
+  const scoreFactors = {
+    fundamental: Math.random() * 40 + 20, // 20-60
+    technical: Math.random() * 30 + 15, // 15-45
+    sentiment: Math.random() * 20 + 5, // 5-25
+    momentum: Math.random() * 10 + 5, // 5-15
+  };
+
+  for (const security of securities) {
+    const totalScore = Math.random() * 40 + 60; // 60-100 score range
+    
+    await prisma.score.upsert({
+      where: { id: securities.indexOf(security) + 1 },
+      update: {},
+      create: {
+        symbol: security.symbol,
+        scoreValue: Math.round(totalScore * 100) / 100, // Round to 2 decimals
+        factorBreakdownJson: {
+          fundamental: Math.round(scoreFactors.fundamental * 100) / 100,
+          technical: Math.round(scoreFactors.technical * 100) / 100,
+          sentiment: Math.round(scoreFactors.sentiment * 100) / 100,
+          momentum: Math.round(scoreFactors.momentum * 100) / 100,
+          explanation: {
+            strengths: ['Strong revenue growth', 'Solid balance sheet', 'Market leadership'],
+            concerns: ['High valuation', 'Market volatility'],
+            recommendation: totalScore > 80 ? 'Strong Buy' : totalScore > 70 ? 'Buy' : 'Hold'
+          }
+        },
+      },
+    });
+  }
+
+  console.log('🎯 Created AI scores for all securities');
+
+  // Create sample watchlists
+  const watchlist1 = await prisma.watchlist.create({
+    data: {
+      userId: user1.id,
+      name: 'Tech Growth Portfolio',
+    },
+  });
+
+  const watchlist2 = await prisma.watchlist.create({
+    data: {
+      userId: user2.id,
+      name: 'Diversified Holdings',
+    },
+  });
+
+  // Add items to watchlists
+  await prisma.watchlistItem.createMany({
     data: [
-      { userId: johnUser.id, name: 'Tech Stocks' },
-      { userId: johnUser.id, name: 'Dividend Aristocrats' },
-      { userId: janeUser.id, name: 'Growth Portfolio' },
-      { userId: janeUser.id, name: 'Safe Haven' }
-    ]
-  })
-  console.log(`✅ Created ${watchlists.count} watchlists`)
+      { watchlistId: watchlist1.id, symbol: 'AAPL' },
+      { watchlistId: watchlist1.id, symbol: 'MSFT' },
+      { watchlistId: watchlist1.id, symbol: 'GOOGL' },
+      { watchlistId: watchlist1.id, symbol: 'NVDA' },
+      { watchlistId: watchlist2.id, symbol: 'AAPL' },
+      { watchlistId: watchlist2.id, symbol: 'JPM' },
+      { watchlistId: watchlist2.id, symbol: 'JNJ' },
+      { watchlistId: watchlist2.id, symbol: 'WMT' },
+    ],
+  });
 
-  // Get watchlist IDs for creating watchlist items
-  const johnTechWatchlist = await prisma.watchlist.findFirst({
-    where: { userId: johnUser.id, name: 'Tech Stocks' }
-  })
-  const johnDividendWatchlist = await prisma.watchlist.findFirst({
-    where: { userId: johnUser.id, name: 'Dividend Aristocrats' }
-  })
-  const janeGrowthWatchlist = await prisma.watchlist.findFirst({
-    where: { userId: janeUser.id, name: 'Growth Portfolio' }
-  })
-  const janeSafeWatchlist = await prisma.watchlist.findFirst({
-    where: { userId: janeUser.id, name: 'Safe Haven' }
-  })
-
-  // Create watchlist items
-  console.log('🔗 Creating watchlist items...')
-  const watchlistItems = await prisma.watchlistItem.createMany({
-    data: [
-      // John's Tech Stocks
-      { watchlistId: johnTechWatchlist!.id, symbol: 'AAPL' },
-      { watchlistId: johnTechWatchlist!.id, symbol: 'MSFT' },
-      { watchlistId: johnTechWatchlist!.id, symbol: 'GOOGL' },
-      { watchlistId: johnTechWatchlist!.id, symbol: 'META' },
-      { watchlistId: johnTechWatchlist!.id, symbol: 'NVDA' },
-      // John's Dividend Aristocrats
-      { watchlistId: johnDividendWatchlist!.id, symbol: 'JNJ' },
-      { watchlistId: johnDividendWatchlist!.id, symbol: 'JPM' },
-      { watchlistId: johnDividendWatchlist!.id, symbol: 'V' },
-      // Jane's Growth Portfolio
-      { watchlistId: janeGrowthWatchlist!.id, symbol: 'TSLA' },
-      { watchlistId: janeGrowthWatchlist!.id, symbol: 'NVDA' },
-      { watchlistId: janeGrowthWatchlist!.id, symbol: 'AMZN' },
-      { watchlistId: janeGrowthWatchlist!.id, symbol: 'GOOGL' },
-      // Jane's Safe Haven
-      { watchlistId: janeSafeWatchlist!.id, symbol: 'JNJ' },
-      { watchlistId: janeSafeWatchlist!.id, symbol: 'JPM' },
-      { watchlistId: janeSafeWatchlist!.id, symbol: 'V' }
-    ]
-  })
-  console.log(`✅ Created ${watchlistItems.count} watchlist items`)
-
-  console.log('🎉 Database seeding completed successfully!')
+  console.log('📋 Created watchlists and items');
+  console.log('✅ Database seeding completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed:', e)
-    process.exit(1)
+    console.error('❌ Error during seeding:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });
