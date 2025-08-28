@@ -1,63 +1,54 @@
 
--- Sample Data for AiiA MVP Database
--- INSERT statements with realistic test data
+-- Sample INSERT statements for AiiA Database
+-- This file contains the same data as the seed script but in raw SQL format
 
--- Insert sample users
+-- Insert sample users (passwords are hashed 'password123')
 INSERT INTO users (email, password_hash, first_name, last_name) VALUES
-('john.doe@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewdBzIdnSvM2k/2C', 'John', 'Doe'),
-('jane.smith@example.com', '$2b$12$6NLCqhIj9C9QGLDLwI.Y8eT7a7LuOQ6fG1Z7bHlLGMFcR3T6f7i8u', 'Jane', 'Smith');
+('john.investor@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYw4ZKaOipmjy3e', 'John', 'Investor'),
+('sarah.trader@email.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYw4ZKaOipmjy3e', 'Sarah', 'Trader')
+ON CONFLICT (email) DO NOTHING;
 
--- Insert sample securities (10 major stocks)
+-- Insert sample securities
 INSERT INTO securities (symbol, company_name, sector, market_cap, is_active) VALUES
 ('AAPL', 'Apple Inc.', 'Technology', 3000000000000, TRUE),
 ('MSFT', 'Microsoft Corporation', 'Technology', 2800000000000, TRUE),
 ('GOOGL', 'Alphabet Inc.', 'Technology', 1700000000000, TRUE),
 ('AMZN', 'Amazon.com Inc.', 'Consumer Discretionary', 1500000000000, TRUE),
 ('TSLA', 'Tesla Inc.', 'Consumer Discretionary', 800000000000, TRUE),
-('META', 'Meta Platforms Inc.', 'Technology', 750000000000, TRUE),
-('NVDA', 'NVIDIA Corporation', 'Technology', 1800000000000, TRUE),
+('NVDA', 'NVIDIA Corporation', 'Technology', 1100000000000, TRUE),
 ('JPM', 'JPMorgan Chase & Co.', 'Financials', 450000000000, TRUE),
 ('JNJ', 'Johnson & Johnson', 'Healthcare', 420000000000, TRUE),
-('V', 'Visa Inc.', 'Financials', 500000000000, TRUE);
+('V', 'Visa Inc.', 'Financials', 500000000000, TRUE),
+('WMT', 'Walmart Inc.', 'Consumer Staples', 480000000000, TRUE)
+ON CONFLICT (symbol) DO NOTHING;
 
--- Insert sample scores for securities
+-- Insert AI-generated scores
 INSERT INTO scores (symbol, score_value, factor_breakdown_json) VALUES
-('AAPL', 85.5, '{"growth": 90, "value": 75, "momentum": 88, "quality": 92, "volatility": 70}'),
-('MSFT', 88.2, '{"growth": 85, "value": 80, "momentum": 90, "quality": 95, "volatility": 75}'),
-('GOOGL', 82.1, '{"growth": 88, "value": 78, "momentum": 85, "quality": 87, "volatility": 68}'),
-('AMZN', 79.8, '{"growth": 92, "value": 65, "momentum": 82, "quality": 85, "volatility": 75}'),
-('TSLA', 75.3, '{"growth": 95, "value": 45, "momentum": 88, "quality": 70, "volatility": 40}'),
-('META', 81.7, '{"growth": 85, "value": 72, "momentum": 86, "quality": 80, "volatility": 65}'),
-('NVDA', 91.2, '{"growth": 98, "value": 70, "momentum": 95, "quality": 90, "volatility": 60}'),
-('JPM', 83.4, '{"growth": 70, "value": 90, "momentum": 85, "quality": 88, "volatility": 80}'),
-('JNJ', 86.9, '{"growth": 65, "value": 95, "momentum": 80, "quality": 95, "volatility": 90}'),
-('V', 89.1, '{"growth": 80, "value": 85, "momentum": 92, "quality": 95, "volatility": 85}');
+('AAPL', 85.50, '{"fundamental": 42.5, "technical": 25.0, "sentiment": 12.5, "momentum": 5.5, "explanation": {"strengths": ["Strong revenue growth", "Solid balance sheet", "Market leadership"], "concerns": ["High valuation", "Market volatility"], "recommendation": "Strong Buy"}}'),
+('MSFT', 88.25, '{"fundamental": 45.0, "technical": 28.0, "sentiment": 10.0, "momentum": 5.25, "explanation": {"strengths": ["Cloud dominance", "Recurring revenue", "AI integration"], "concerns": ["Competition", "Valuation"], "recommendation": "Strong Buy"}}'),
+('GOOGL', 82.75, '{"fundamental": 38.5, "technical": 30.0, "sentiment": 9.25, "momentum": 5.0, "explanation": {"strengths": ["Search monopoly", "AI capabilities", "Cash reserves"], "concerns": ["Regulatory risk", "Ad market"], "recommendation": "Strong Buy"}}'),
+('AMZN', 79.50, '{"fundamental": 35.0, "technical": 32.0, "sentiment": 8.0, "momentum": 4.5, "explanation": {"strengths": ["E-commerce leader", "AWS growth", "Innovation"], "concerns": ["Competition", "Margins"], "recommendation": "Buy"}}'),
+('TSLA', 75.25, '{"fundamental": 30.0, "technical": 35.0, "sentiment": 7.25, "momentum": 3.0, "explanation": {"strengths": ["EV market leader", "Technology", "Brand"], "concerns": ["Volatility", "Competition"], "recommendation": "Buy"}}'),
+('NVDA', 91.00, '{"fundamental": 48.0, "technical": 30.0, "sentiment": 8.0, "momentum": 5.0, "explanation": {"strengths": ["AI chip leader", "Data center growth", "Gaming"], "concerns": ["Cyclical nature", "Geopolitics"], "recommendation": "Strong Buy"}}'),
+('JPM', 72.50, '{"fundamental": 40.0, "technical": 20.0, "sentiment": 7.5, "momentum": 5.0, "explanation": {"strengths": ["Banking leader", "Interest rates", "Capital"], "concerns": ["Economic cycle", "Regulation"], "recommendation": "Buy"}}'),
+('JNJ', 68.75, '{"fundamental": 38.0, "technical": 18.0, "sentiment": 8.75, "momentum": 4.0, "explanation": {"strengths": ["Dividend aristocrat", "Healthcare demand", "Pipeline"], "concerns": ["Patent cliffs", "Litigation"], "recommendation": "Hold"}}'),
+('V', 83.25, '{"fundamental": 44.0, "technical": 26.0, "sentiment": 8.25, "momentum": 5.0, "explanation": {"strengths": ["Payment network", "Moat", "Growth"], "concerns": ["Digital currencies", "Regulation"], "recommendation": "Strong Buy"}}'),
+('WMT', 70.00, '{"fundamental": 36.0, "technical": 22.0, "sentiment": 7.0, "momentum": 5.0, "explanation": {"strengths": ["Retail giant", "E-commerce growth", "Stability"], "concerns": ["Margins", "Competition"], "recommendation": "Hold"}}');
 
--- Insert sample watchlists
+-- Insert sample watchlists (assuming user IDs 1 and 2)
 INSERT INTO watchlists (user_id, name) VALUES
-(1, 'Tech Stocks'),
-(1, 'Dividend Aristocrats'),
-(2, 'Growth Portfolio'),
-(2, 'Safe Haven');
+(1, 'Tech Growth Portfolio'),
+(2, 'Diversified Holdings')
+ON CONFLICT DO NOTHING;
 
--- Insert sample watchlist items
+-- Insert watchlist items (assuming watchlist IDs 1 and 2)
 INSERT INTO watchlist_items (watchlist_id, symbol) VALUES
--- John's Tech Stocks watchlist
 (1, 'AAPL'),
 (1, 'MSFT'),
 (1, 'GOOGL'),
-(1, 'META'),
 (1, 'NVDA'),
--- John's Dividend Aristocrats watchlist
-(2, 'JNJ'),
+(2, 'AAPL'),
 (2, 'JPM'),
-(2, 'V'),
--- Jane's Growth Portfolio watchlist
-(3, 'TSLA'),
-(3, 'NVDA'),
-(3, 'AMZN'),
-(3, 'GOOGL'),
--- Jane's Safe Haven watchlist
-(4, 'JNJ'),
-(4, 'JPM'),
-(4, 'V');
+(2, 'JNJ'),
+(2, 'WMT')
+ON CONFLICT (watchlist_id, symbol) DO NOTHING;

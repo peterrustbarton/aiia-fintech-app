@@ -2,156 +2,145 @@
 # AiiA Database Foundation
 
 ## Overview
-This directory contains the PostgreSQL database foundation for the AiiA (Artificially Intelligent Investment Assistant) fintech application MVP.
+This directory contains the PostgreSQL database foundation for **AiiA - Artificially Intelligent Investment Assistant**, a comprehensive fintech application that provides explainable security scoring and investment insights.
+
+## Files Structure
+
+```
+database/
+├── schema.sql          # Complete PostgreSQL schema with tables and indexes
+├── sample_data.sql     # Sample INSERT statements for testing
+└── README.md          # This documentation
+
+scripts/
+├── seed.ts            # Prisma seed script with realistic test data
+
+lib/
+└── database.ts        # Database connection utilities and helpers
+```
 
 ## Database Schema
 
-The database consists of 5 core tables designed for a financial investment platform:
+### Tables
 
-### 1. `users`
-Stores user account information for platform authentication and personalization.
+1. **users** - User account information
+   - `id` (Primary Key, Serial)
+   - `email` (Unique, VARCHAR(255))
+   - `password_hash` (VARCHAR(255))
+   - `first_name` (VARCHAR(100))
+   - `last_name` (VARCHAR(100))
+   - `created_at` (Timestamp)
 
-**Columns:**
-- `id` (SERIAL PRIMARY KEY) - Unique user identifier
-- `email` (VARCHAR(255) UNIQUE NOT NULL) - User email address (login credential)
-- `password_hash` (VARCHAR(255) NOT NULL) - Bcrypt hashed password
-- `first_name` (VARCHAR(100) NOT NULL) - User's first name
-- `last_name` (VARCHAR(100) NOT NULL) - User's last name
-- `created_at` (TIMESTAMP WITH TIME ZONE) - Account creation timestamp
+2. **securities** - Stock/security information
+   - `symbol` (Primary Key, VARCHAR(10))
+   - `company_name` (VARCHAR(255))
+   - `sector` (VARCHAR(100))
+   - `market_cap` (BIGINT)
+   - `is_active` (BOOLEAN, default: TRUE)
 
-**Indexes:** email, created_at
+3. **scores** - AI-generated security scores
+   - `id` (Primary Key, Serial)
+   - `symbol` (Foreign Key to securities)
+   - `score_value` (DECIMAL(5,2))
+   - `calculated_at` (Timestamp)
+   - `factor_breakdown_json` (JSONB) - Explainable AI factors
 
-### 2. `securities`
-Contains information about financial securities (stocks, ETFs, etc.) available on the platform.
+4. **watchlists** - User portfolio collections
+   - `id` (Primary Key, Serial)
+   - `user_id` (Foreign Key to users)
+   - `name` (VARCHAR(255))
+   - `created_at` (Timestamp)
 
-**Columns:**
-- `symbol` (VARCHAR(10) PRIMARY KEY) - Stock ticker symbol (e.g., AAPL, MSFT)
-- `company_name` (VARCHAR(255) NOT NULL) - Full company name
-- `sector` (VARCHAR(100)) - Industry sector classification
-- `market_cap` (BIGINT) - Market capitalization in USD
-- `is_active` (BOOLEAN DEFAULT TRUE) - Whether security is actively traded
+5. **watchlist_items** - Junction table for watchlist securities
+   - `id` (Primary Key, Serial)
+   - `watchlist_id` (Foreign Key to watchlists)
+   - `symbol` (Foreign Key to securities)
+   - `added_at` (Timestamp)
+   - Unique constraint on (watchlist_id, symbol)
 
-**Indexes:** sector, market_cap, is_active, company_name
-
-### 3. `scores`
-Stores AI-generated investment scores and analysis for securities.
-
-**Columns:**
-- `id` (SERIAL PRIMARY KEY) - Unique score record identifier
-- `symbol` (VARCHAR(10) NOT NULL) - References securities.symbol
-- `score_value` (DECIMAL(5,2)) - AI score (0-100 scale)
-- `calculated_at` (TIMESTAMP WITH TIME ZONE) - Score calculation timestamp
-- `factor_breakdown_json` (JSONB) - Detailed scoring factors in JSON format
-
-**Indexes:** symbol, calculated_at, score_value, compound index on (symbol, calculated_at DESC)
-**Constraints:** score_value CHECK (0 <= score_value <= 100)
-
-### 4. `watchlists`
-User-created lists for organizing securities of interest.
-
-**Columns:**
-- `id` (SERIAL PRIMARY KEY) - Unique watchlist identifier
-- `user_id` (INTEGER NOT NULL) - References users.id
-- `name` (VARCHAR(255) NOT NULL) - User-defined watchlist name
-- `created_at` (TIMESTAMP WITH TIME ZONE) - Watchlist creation timestamp
-
-**Indexes:** user_id, created_at
-
-### 5. `watchlist_items`
-Junction table linking securities to watchlists (many-to-many relationship).
-
-**Columns:**
-- `id` (SERIAL PRIMARY KEY) - Unique item identifier
-- `watchlist_id` (INTEGER NOT NULL) - References watchlists.id
-- `symbol` (VARCHAR(10) NOT NULL) - References securities.symbol
-- `added_at` (TIMESTAMP WITH TIME ZONE) - Item addition timestamp
-
-**Indexes:** watchlist_id, symbol, added_at
-**Constraints:** UNIQUE(watchlist_id, symbol) - prevents duplicate securities in same watchlist
-
-## Design Decisions
-
-### Primary Keys
-- **Auto-incrementing integers** for users, scores, watchlists, and watchlist_items (standard practice for transactional tables)
-- **Natural key (symbol)** for securities table since ticker symbols are industry-standard unique identifiers
-
-### Foreign Key Relationships
-- `scores.symbol` → `securities.symbol` (CASCADE DELETE)
-- `watchlists.user_id` → `users.id` (CASCADE DELETE)
-- `watchlist_items.watchlist_id` → `watchlists.id` (CASCADE DELETE)
-- `watchlist_items.symbol` → `securities.symbol` (CASCADE DELETE)
-
-### Data Types
-- **JSONB** for factor_breakdown - allows flexible scoring criteria storage with PostgreSQL's advanced JSON querying
-- **DECIMAL(5,2)** for scores - precise decimal handling for financial calculations
-- **BIGINT** for market_cap - handles large market capitalization values
-- **TIMESTAMP WITH TIME ZONE** - proper timezone handling for global users
-
-### Performance Optimizations
-- **Comprehensive indexing** on frequently queried columns
-- **Compound indexes** for common query patterns (e.g., symbol + calculated_at)
-- **Unique constraints** to prevent data inconsistencies
-- **Foreign key indexes** for join performance
-
-## Files
-
-- `schema.sql` - Complete DDL statements for table creation and indexes
-- `sample_data.sql` - Realistic test data including 10 major stocks and 2 users
-- `connection.py` - SQLAlchemy connection setup and ORM models
-- `README.md` - This documentation file
-
-## Sample Data
-
-The sample data includes:
-- **2 test users** with bcrypt-hashed passwords
-- **10 major securities** (AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, JPM, JNJ, V)
-- **AI scores** for all securities with realistic factor breakdowns
-- **4 sample watchlists** distributed between users
-- **Multiple watchlist items** demonstrating the many-to-many relationship
+### Indexes
+Performance-optimized indexes on frequently queried columns:
+- User email lookups
+- Security sector and market cap filtering
+- Score value ranking and symbol lookups
+- Watchlist user associations
+- Date-based queries
 
 ## Usage
 
-### Setup Database Schema
-```sql
-psql -d your_database -f schema.sql
+### 1. Generate Prisma Client
+```bash
+cd /home/ubuntu/aiia_mvp/app
+yarn prisma generate
 ```
 
-### Load Sample Data
-```sql
-psql -d your_database -f sample_data.sql
+### 2. Apply Database Schema
+```bash
+yarn prisma db push
 ```
 
-### Python Connection
-```python
-from database.connection import test_connection, SessionLocal, User, Security
-
-# Test connection
-test_connection()
-
-# Create session and query
-db = SessionLocal()
-users = db.query(User).all()
-db.close()
+### 3. Seed Sample Data
+```bash
+yarn prisma db seed
 ```
 
-## Future Enhancements
+### 4. Test Database Connection
+```typescript
+import prisma, { DatabaseUtils } from '@/lib/database';
 
-This MVP foundation can be extended with:
-- User role management (admin, premium, basic)
-- Portfolio tracking tables
-- Transaction history
-- Real-time price data integration
-- Advanced scoring algorithm parameters
-- Security categories and tags
-- User preferences and settings
-- Audit logging for compliance
+// Test connection
+const isConnected = await DatabaseUtils.testConnection();
 
-## Security Considerations
+// Get health status
+const health = await DatabaseUtils.getHealthStatus();
+```
 
-- Passwords are bcrypt hashed (never store plain text)
-- Email addresses are unique and indexed for fast authentication
-- Foreign key constraints maintain data integrity
-- Timestamps support audit trails and compliance requirements
+## Sample Data
 
----
-**Note:** This schema is designed for MVP development. Production deployment should include additional security measures, backup strategies, and monitoring solutions.
+The seed script includes:
+- **2 Users**: john.investor@email.com, sarah.trader@email.com
+- **10 Securities**: AAPL, MSFT, GOOGL, AMZN, TSLA, NVDA, JPM, JNJ, V, WMT
+- **AI Scores**: Realistic scores (60-95 range) with explainable factor breakdowns
+- **Watchlists**: Sample portfolios with securities assignments
+
+## Design Choices
+
+### 1. Primary Keys
+- **users**: Auto-increment integer for internal references
+- **securities**: Stock symbol (VARCHAR) as natural primary key for easy API integration
+- **scores, watchlists, watchlist_items**: Auto-increment integers for performance
+
+### 2. Data Types
+- **DECIMAL(5,2)**: Score values (0.00 to 999.99 range)
+- **BIGINT**: Market cap values for large numbers
+- **JSONB**: Factor breakdown for efficient querying and storage
+- **VARCHAR with constraints**: Optimized string lengths
+
+### 3. Relationships
+- **Cascade deletes**: Maintains referential integrity
+- **Foreign key constraints**: Ensures data consistency
+- **Unique constraints**: Prevents duplicate watchlist items
+
+### 4. Performance Optimizations
+- **Strategic indexes**: On frequently filtered columns
+- **JSONB**: For factor breakdown querying capabilities
+- **Connection pooling**: Via Prisma client configuration
+
+### 5. Security Considerations
+- **Password hashing**: Using bcrypt with salt rounds
+- **Input validation**: Via Prisma type safety
+- **SQL injection prevention**: Through parameterized queries
+
+## Next Steps
+
+1. **API Integration**: Connect to real-time market data feeds
+2. **AI Scoring Engine**: Implement machine learning models for score calculation  
+3. **User Authentication**: Add JWT-based session management
+4. **Caching Layer**: Implement Redis for frequently accessed data
+5. **Backup Strategy**: Set up automated database backups
+
+## Environment Variables Required
+
+```env
+DATABASE_URL="postgresql://username:password@host:port/database"
+```
