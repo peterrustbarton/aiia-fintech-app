@@ -41,12 +41,11 @@ app = FastAPI(
 # Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev servers
+    allow_origins=["*"],  # Allow all origins for now
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Include API routes
 app.include_router(securities_router, prefix="/api")
 app.include_router(watchlists_router, prefix="/api")
