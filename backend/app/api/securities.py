@@ -11,7 +11,7 @@ from ..database import get_db
 from ..models import Security, Score
 from ..schemas import SecurityResponse, SecurityWithScore
 
-router = APIRouter(prefix="/securities", tags=["securities"], redirect_slashes=False)
+router = APIRouter(prefix="/securities", tags=["securities"], redirect_slashes=True)
 
 @router.get("/", response_model=List[SecurityWithScore])
 async def get_securities(
