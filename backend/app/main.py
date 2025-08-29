@@ -39,8 +39,10 @@ app = FastAPI(
 
 # Allowed origins for CORS
 origins = [
-    "http://localhost:3000",  # local dev frontend
-    "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",  # your Vercel frontend URL
+    "http://localhost:3000",
+    "https://aiia-fintech-app.vercel.app",
+    "https://aiia-fintech-k9zu90qa3-peters-projects-a9a53cba.vercel.app",
+    "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",
 ]
 
 # Add CORS middleware for frontend connection
