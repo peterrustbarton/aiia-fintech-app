@@ -12,7 +12,13 @@ from ..models import Security
 from ..schemas import SecurityWithScore
 
 router = APIRouter(prefix="/securities", tags=["securities"], redirect_slashes=False)
-
+@router.get("", response_model=List[SecurityWithScore])
+async def get_securities_no_slash(
+    active_only: bool = True,
+    db: Session = Depends(get_db)
+):
+    return await get_securities(active_only, db)
+    
 @router.get("/", response_model=List[SecurityWithScore])
 async def get_securities(
     active_only: bool = True,
