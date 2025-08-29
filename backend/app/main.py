@@ -65,8 +65,8 @@ async def root():
         "docs": "/docs"
     }
 
-@app.get("/health")
-async def health_check():
+@app.get("/api/health")
+async def api_health_check():
     db_status = test_connection()
     return {
         "status": "healthy" if db_status else "unhealthy",
