@@ -1,49 +1,13 @@
-"""
-AiiA FastAPI Main Application
-Entry point for the API server
-"""
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 
-from .database import test_connection, engine
-from .api import securities_router, watchlists_router
+app = FastAPI()
 
-# Test database connection on startup
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    print("\U0001f680 Starting AiiA FastAPI Backend...")
-    
-    # Test database connection
-    if test_connection():
-        print("\u2705 Database connection successful")
-    else:
-        print("\u274c Database connection failed")
-    
-    # Tables already exist in the database
-    
-    yield
-    
-    # Shutdown
-    print("\U0001f6d1 Shutting down AiiA FastAPI Backend...")
-
-# Create FastAPI app
-app = FastAPI(
-    title="AiiA API",
-    description="Artificially Intelligent Investment Assistant API",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Allowed origins for CORS
 origins = [
-    "http://localhost:3000",  # local dev frontend
-    "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",  # your Vercel frontend URL
+    "http://localhost:3000",
+    "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",
 ]
 
-# Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -52,28 +16,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routes
-app.include_router(securities_router, prefix="/api")
-app.include_router(watchlists_router, prefix="/api")
-
-# Health check endpoint
-@app.get("/")
-async def root():
-    return {
-        "message": "AiiA FastAPI Backend is running!",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
-
 @app.get("/api/health")
-async def api_health_check():
-    db_status = test_connection()
-    return {
-        "status": "healthy" if db_status else "unhealthy",
-        "database": "connected" if db_status else "disconnected",
-        "service": "AiiA FastAPI Backend"
-    }
+async def health_check():
+    return {"status": "healthy"}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+@app.options("/{rest_of_path:path}")
+async def options_handler(rest_of_path: str):
+    # Explicitly handle OPTIONS for any path to avoid 400 errors
+    return {}
+
+# Dummy securities endpoint for testing
+@app.get("/api/securities")
+async def get_securities(active_only: bool = True):
+    return [{"symbol": "AAPL", "active_only": active_only}]
