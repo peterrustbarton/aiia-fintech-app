@@ -1,5 +1,5 @@
 """
-AiiA FastAPI Main Application yup
+AiiA FastAPI Main Application
 Entry point for the API server
 """
 
@@ -7,29 +7,19 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from .database import test_connection, engine
+from .database import test_connection
 from .api import securities_router, watchlists_router
 
-# Test database connection on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     print("\U0001f680 Starting AiiA FastAPI Backend...")
-    
-    # Test database connection
     if test_connection():
         print("\u2705 Database connection successful")
     else:
         print("\u274c Database connection failed")
-    
-    # Tables already exist in the database
-    
     yield
-    
-    # Shutdown
     print("\U0001f6d1 Shutting down AiiA FastAPI Backend...")
 
-# Create FastAPI app
 app = FastAPI(
     title="AiiA API",
     description="Artificially Intelligent Investment Assistant API",
@@ -37,7 +27,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Allowed origins for CORS
 origins = [
     "http://localhost:3000",
     "https://aiia-fintech-app.vercel.app",
@@ -45,7 +34,6 @@ origins = [
     "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",
 ]
 
-# Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -54,16 +42,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routes
 app.include_router(securities_router, prefix="/api")
 app.include_router(watchlists_router, prefix="/api")
 
-# Catch-all OPTIONS handler to fix CORS preflight 400 errors
 @app.options("/{rest_of_path:path}")
 async def options_handler(rest_of_path: str):
     return Response(status_code=200)
 
-# Health check endpoint
 @app.get("/")
 async def root():
     return {
