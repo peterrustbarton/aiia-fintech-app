@@ -1,4 +1,3 @@
-
 """
 AiiA FastAPI Main Application
 Entry point for the API server
@@ -15,20 +14,20 @@ from .api import securities_router, watchlists_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("🚀 Starting AiiA FastAPI Backend...")
+    print("\U0001f680 Starting AiiA FastAPI Backend...")
     
     # Test database connection
     if test_connection():
-        print("✅ Database connection successful")
+        print("\u2705 Database connection successful")
     else:
-        print("❌ Database connection failed")
+        print("\u274c Database connection failed")
     
     # Tables already exist in the database
     
     yield
     
     # Shutdown
-    print("🛑 Shutting down AiiA FastAPI Backend...")
+    print("\U0001f6d1 Shutting down AiiA FastAPI Backend...")
 
 # Create FastAPI app
 app = FastAPI(
@@ -38,14 +37,21 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Allowed origins for CORS
+origins = [
+    "http://localhost:3000",  # local dev frontend
+    "https://aiia-fintech-c3e98di6f-peters-projects-a9a53cba.vercel.app",  # your Vercel frontend URL
+]
+
 # Add CORS middleware for frontend connection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Include API routes
 app.include_router(securities_router, prefix="/api")
 app.include_router(watchlists_router, prefix="/api")
