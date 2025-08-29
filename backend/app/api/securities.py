@@ -1,4 +1,3 @@
-
 """
 Securities API Routes
 Endpoints for managing securities and scores
