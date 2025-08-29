@@ -96,7 +96,7 @@ export class ApiClient {
 
   // Securities endpoints
   async getSecurities(activeOnly: boolean = true): Promise<Security[]> {
-    return this.request<Security[]>(`/api/securities?active_only=${activeOnly}`);
+    return this.request<Security[]>(`/api/securities/?active_only=${activeOnly}`);
   }
 
   async getSecurity(symbol: string): Promise<Security> {
