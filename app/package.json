@@ -2,6 +2,7 @@
   "name": "app",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "concurrently \"cd ../backend && uvicorn app.main:app --reload --port 8001\" \"next dev\"",
     "build": "next build",
     "start": "npm run build && concurrently \"cd ../backend && uvicorn app.main:app --reload --port 8001\" \"next start\"",
