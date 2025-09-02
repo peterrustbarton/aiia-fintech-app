@@ -11,19 +11,6 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  firstName    String   @map("first_name") @db.VarChar(100)
-  lastName     String   @map("last_name") @db.VarChar(100)
-  createdAt    DateTime @default(now()) @map("created_at")
-  
-  watchlists   Watchlist[]
-  
-  @@map("users")
-}
-
 model Security {
   symbol      String  @id @db.VarChar(10)
   companyName String  @map("company_name") @db.VarChar(255)
@@ -72,6 +59,21 @@ model WatchlistItem {
   
   @@unique([watchlistId, symbol])
   @@map("watchlist_items")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  firstName    String   @map("first_name") @db.VarChar(100)
+  lastName     String   @map("last_name") @db.VarChar(100)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  watchlists   Watchlist[]
+  alerts       Alert[]
+  reports      Report[]
+
+  @@map("users")
 }
 
 model Alert {
