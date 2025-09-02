@@ -42,8 +42,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(securities_router, prefix="/dumbsecurity")
-app.include_router(watchlists_router, prefix="/dumbwatch")
+app.include_router(securities_router, prefix="/api")
+app.include_router(watchlists_router, prefix="/api")
 
 @app.options("/{rest_of_path:path}")
 async def options_handler(rest_of_path: str):

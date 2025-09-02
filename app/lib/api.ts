@@ -96,34 +96,34 @@ export class ApiClient {
 
   // Securities endpoints
   async getSecurities(activeOnly: boolean = true): Promise<Security[]> {
-    return this.request<Security[]>(`/api/securities/?active_only=${activeOnly}`);
+    return this.request<Security[]>(`/securities/?active_only=${activeOnly}`);
   }
 
   async getSecurity(symbol: string): Promise<Security> {
-    return this.request<Security>(`/api/securities/${symbol}`);
+    return this.request<Security>(`/securities/${symbol}`);
   }
 
   // Watchlists endpoints
   async getUserWatchlists(userId: number): Promise<Watchlist[]> {
-    return this.request<Watchlist[]>(`/api/users/${userId}/watchlists`);
+    return this.request<Watchlist[]>(`/users/${userId}/watchlists`);
   }
 
   async createWatchlist(userId: number, name: string): Promise<Watchlist> {
-    return this.request<Watchlist>(`/api/users/${userId}/watchlists`, {
+    return this.request<Watchlist>(`/users/${userId}/watchlists`, {
       method: 'POST',
       body: JSON.stringify({ name }),
     });
   }
 
   async addToWatchlist(watchlistId: number, symbol: string): Promise<WatchlistItem> {
-    return this.request<WatchlistItem>(`/api/users/watchlists/${watchlistId}/items`, {
+    return this.request<WatchlistItem>(`/users/watchlists/${watchlistId}/items`, {
       method: 'POST',
       body: JSON.stringify({ symbol }),
     });
   }
 
   async removeFromWatchlist(watchlistId: number, symbol: string): Promise<void> {
-    return this.request<void>(`/api/users/watchlists/${watchlistId}/items/${symbol}`, {
+    return this.request<void>(`/users/watchlists/${watchlistId}/items/${symbol}`, {
       method: 'DELETE',
     });
   }
