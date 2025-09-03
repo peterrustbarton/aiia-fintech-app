@@ -12,6 +12,13 @@ export interface Security {
   is_active: boolean;
   market_cap_formatted: string;
   latest_score?: Score;
+  
+  // Live market data fields
+  live_price?: number | null;
+  price_change_percent?: number | null;
+  live_market_cap?: number | null;
+  last_updated?: string | null;
+  data_source?: string | null;
 }
 
 export interface Score {
@@ -67,11 +74,6 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    // DEBUG: Log the actual URL being called
-    console.log('🔍 API Request URL:', url);
-    console.log('🔍 Base URL:', this.baseUrl);
-    console.log('🔍 Endpoint:', endpoint);
-    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -80,50 +82,44 @@ export class ApiClient {
       ...options,
     });
 
-    console.log('🔍 Response Status:', response.status);
-    console.log('🔍 Response OK:', response.ok);
-
     if (!response.ok) {
       const error = await response.text();
-      console.error('🔍 API Error:', error);
       throw new Error(`API Error (${response.status}): ${error}`);
     }
 
-    const data = await response.json();
-    console.log('🔍 Response Data (first item):', data[0] || 'No data');
-    return data;
+    return response.json();
   }
 
   // Securities endpoints
   async getSecurities(activeOnly: boolean = true): Promise<Security[]> {
-    return this.request<Security[]>(`/securities/?active_only=${activeOnly}`);
+    return this.request<Security[]>(`/api/securities/?active_only=${activeOnly}`);
   }
 
   async getSecurity(symbol: string): Promise<Security> {
-    return this.request<Security>(`/securities/${symbol}`);
+    return this.request<Security>(`/api/securities/${symbol}`);
   }
 
   // Watchlists endpoints
   async getUserWatchlists(userId: number): Promise<Watchlist[]> {
-    return this.request<Watchlist[]>(`/users/${userId}/watchlists`);
+    return this.request<Watchlist[]>(`/api/users/${userId}/watchlists`);
   }
 
   async createWatchlist(userId: number, name: string): Promise<Watchlist> {
-    return this.request<Watchlist>(`/users/${userId}/watchlists`, {
+    return this.request<Watchlist>(`/api/users/${userId}/watchlists`, {
       method: 'POST',
       body: JSON.stringify({ name }),
     });
   }
 
   async addToWatchlist(watchlistId: number, symbol: string): Promise<WatchlistItem> {
-    return this.request<WatchlistItem>(`/users/watchlists/${watchlistId}/items`, {
+    return this.request<WatchlistItem>(`/api/users/watchlists/${watchlistId}/items`, {
       method: 'POST',
       body: JSON.stringify({ symbol }),
     });
   }
 
   async removeFromWatchlist(watchlistId: number, symbol: string): Promise<void> {
-    return this.request<void>(`/users/watchlists/${watchlistId}/items/${symbol}`, {
+    return this.request<void>(`/api/users/watchlists/${watchlistId}/items/${symbol}`, {
       method: 'DELETE',
     });
   }

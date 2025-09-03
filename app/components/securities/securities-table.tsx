@@ -3,8 +3,8 @@
 
 "use client";
 
-import { useState } from 'react';
-import { ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, TrendingDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, TrendingDown, RefreshCw, Clock } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,15 +16,36 @@ import { SymbolModal } from './symbol-modal';
 interface SecuritiesTableProps {
   securities: Security[];
   loading?: boolean;
+  onRefresh?: () => void;
 }
 
-type SortField = 'symbol' | 'company_name' | 'sector' | 'market_cap' | 'score';
+type SortField = 'symbol' | 'company_name' | 'sector' | 'market_cap' | 'score' | 'live_price' | 'price_change';
 type SortDirection = 'asc' | 'desc';
 
-export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
+export function SecuritiesTable({ securities, loading, onRefresh }: SecuritiesTableProps) {
   const [sortField, setSortField] = useState<SortField>('score');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    if (!onRefresh) return;
+    
+    const interval = setInterval(() => {
+      onRefresh();
+      setLastUpdated(new Date());
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [onRefresh]);
+
+  // Set initial last updated time
+  useEffect(() => {
+    if (securities.length > 0 && !lastUpdated) {
+      setLastUpdated(new Date());
+    }
+  }, [securities.length, lastUpdated]);
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -46,6 +67,14 @@ export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
       case 'market_cap':
         aValue = parseFloat(a.market_cap || '0');
         bValue = parseFloat(b.market_cap || '0');
+        break;
+      case 'live_price':
+        aValue = a.live_price || 0;
+        bValue = b.live_price || 0;
+        break;
+      case 'price_change':
+        aValue = a.price_change_percent || 0;
+        bValue = b.price_change_percent || 0;
         break;
       default:
         aValue = a[sortField as keyof Security] || '';
@@ -78,6 +107,37 @@ export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
     return 'destructive';
   };
 
+  const getChangeColor = (change?: number | null) => {
+    if (change === undefined || change === null) return 'text-gray-500';
+    if (change > 0) return 'text-green-600';
+    if (change < 0) return 'text-red-600';
+    return 'text-gray-500';
+  };
+
+  const formatPrice = (price?: number | null) => {
+    if (price === undefined || price === null) return 'N/A';
+    return `$${price.toFixed(2)}`;
+  };
+
+  const formatChange = (change?: number | null) => {
+    if (change === undefined || change === null) return 'N/A';
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)}%`;
+  };
+
+  const getLastUpdatedText = () => {
+    if (!lastUpdated) return '';
+    const now = new Date();
+    const diffMs = now.getTime() - lastUpdated.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+
+    if (diffMin === 0) return 'Updated now';
+    if (diffMin === 1) return '1 min ago';
+    if (diffMin < 60) return `${diffMin} mins ago`;
+    return lastUpdated.toLocaleTimeString();
+  };
+
   if (loading) {
     return (
       <Card>
@@ -106,6 +166,31 @@ export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
               {securities.length} Securities
             </Badge>
           </CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              {getLastUpdatedText()}
+              {securities.some(s => s.data_source) && (
+                <Badge variant="outline" className="text-xs">
+                  Live Data
+                </Badge>
+              )}
+            </div>
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onRefresh();
+                  setLastUpdated(new Date());
+                }}
+                disabled={loading}
+              >
+                <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+                Refresh
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -130,6 +215,16 @@ export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
                   <TableHead>
                     <Button variant="ghost" onClick={() => handleSort('market_cap')} className="h-8 p-0">
                       Market Cap <SortIcon field="market_cap" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('live_price')} className="h-8 p-0">
+                      Live Price <SortIcon field="live_price" />
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={() => handleSort('price_change')} className="h-8 p-0">
+                      Change % <SortIcon field="price_change" />
                     </Button>
                   </TableHead>
                   <TableHead>
@@ -162,6 +257,35 @@ export function SecuritiesTable({ securities, loading }: SecuritiesTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{security.market_cap_formatted}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-lg">
+                          {formatPrice(security.live_price)}
+                        </span>
+                        {security.data_source && (
+                          <Badge variant="outline" className="text-xs">
+                            {security.data_source}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className={cn("font-bold text-lg", getChangeColor(security.price_change_percent))}>
+                          {formatChange(security.price_change_percent)}
+                        </span>
+                        {security.price_change_percent !== null && security.price_change_percent !== undefined && (
+                          <>
+                            {security.price_change_percent > 0 && (
+                              <TrendingUp className="h-4 w-4 text-green-600" />
+                            )}
+                            {security.price_change_percent < 0 && (
+                              <TrendingDown className="h-4 w-4 text-red-600" />
+                            )}
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

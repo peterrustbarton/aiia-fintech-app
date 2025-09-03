@@ -1,13 +1,14 @@
 
 """
 Watchlists API Routes
-Endpoints for managing user watchlists and items
+Endpoints for managing user watchlists and items with live market data
 """
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
 from typing import List
+import logging
 
 from ..database import get_db
 from ..models import User, Watchlist, WatchlistItem, Security
@@ -17,6 +18,9 @@ from ..schemas import (
     WatchlistItemResponse,
     WatchlistItemCreate
 )
+from ..services.market_data import get_market_data_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/users", tags=["watchlists"])
 
@@ -26,7 +30,7 @@ async def get_user_watchlists(
     db: Session = Depends(get_db)
 ):
     """
-    Get all watchlists for a user
+    Get all watchlists for a user with live market data
     """
     # Check if user exists
     user = db.query(User).filter(User.id == user_id).first()
@@ -36,6 +40,48 @@ async def get_user_watchlists(
     watchlists = db.query(Watchlist).options(
         selectinload(Watchlist.items).selectinload(WatchlistItem.security)
     ).filter(Watchlist.user_id == user_id).all()
+    
+    # Enrich securities with live market data
+    try:
+        market_service = await get_market_data_service()
+        
+        # Collect all unique symbols from all watchlists
+        all_symbols = set()
+        for watchlist in watchlists:
+            for item in watchlist.items:
+                if item.security:
+                    all_symbols.add(item.security.symbol)
+        
+        if all_symbols:
+            # Fetch live data for all symbols concurrently
+            live_quotes = await market_service.get_multiple_quotes(list(all_symbols))
+            
+            # Enrich each security with live data
+            for watchlist in watchlists:
+                for item in watchlist.items:
+                    if item.security and item.security.symbol in live_quotes:
+                        security = item.security
+                        quote = live_quotes[security.symbol]
+                        
+                        # Add live data to security object
+                        security.live_price = quote.price
+                        security.price_change_percent = quote.change_percent
+                        security.last_updated = quote.timestamp
+                        security.data_source = quote.source
+                        
+                        # Update sector if available from live data and not in DB
+                        if quote.sector and not security.sector:
+                            security.sector = quote.sector
+                        
+                        # Update market cap if available from live data
+                        if quote.market_cap is not None:
+                            security.live_market_cap = quote.market_cap
+            
+            logger.info(f"Enriched {len(all_symbols)} securities in watchlists with live market data")
+            
+    except Exception as e:
+        logger.error(f"Error enriching watchlist securities with live data: {e}")
+        # Continue without live data - graceful degradation
     
     return watchlists
 

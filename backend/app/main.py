@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 from .database import test_connection
 from .api import securities_router, watchlists_router
+from .services.market_data import cleanup_market_data_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,7 +18,12 @@ async def lifespan(app: FastAPI):
         print("\u2705 Database connection successful")
     else:
         print("\u274c Database connection failed")
+    
+    print("\u2705 Market data service initialized")
     yield
+    
+    # Cleanup
+    await cleanup_market_data_service()
     print("\U0001f6d1 Shutting down AiiA FastAPI Backend...")
 
 app = FastAPI(

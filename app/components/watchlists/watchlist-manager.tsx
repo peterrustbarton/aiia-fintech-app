@@ -4,7 +4,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Plus, Trash2, List, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, List, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,25 @@ export function WatchlistManager() {
   const { data: watchlists, isLoading } = useWatchlists();
   const createWatchlist = useCreateWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
+
+  // Helper functions for formatting live data
+  const formatPrice = (price?: number | null) => {
+    if (price === undefined || price === null) return 'N/A';
+    return `$${price.toFixed(2)}`;
+  };
+
+  const formatChange = (change?: number | null) => {
+    if (change === undefined || change === null) return 'N/A';
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)}%`;
+  };
+
+  const getChangeColor = (change?: number | null) => {
+    if (change === undefined || change === null) return 'text-gray-500';
+    if (change > 0) return 'text-green-600';
+    if (change < 0) return 'text-red-600';
+    return 'text-gray-500';
+  };
 
   const handleCreateWatchlist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,6 +168,8 @@ export function WatchlistManager() {
                           <TableHead>Symbol</TableHead>
                           <TableHead>Company</TableHead>
                           <TableHead>Sector</TableHead>
+                          <TableHead>Live Price</TableHead>
+                          <TableHead>Change %</TableHead>
                           <TableHead>Added</TableHead>
                           <TableHead className="w-12"></TableHead>
                         </TableRow>
@@ -170,6 +191,35 @@ export function WatchlistManager() {
                               {item.security?.sector && (
                                 <Badge variant="outline">{item.security.sector}</Badge>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold">
+                                  {formatPrice(item.security?.live_price)}
+                                </span>
+                                {item.security?.data_source && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {item.security.data_source}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className={`font-bold ${getChangeColor(item.security?.price_change_percent)}`}>
+                                  {formatChange(item.security?.price_change_percent)}
+                                </span>
+                                {item.security?.price_change_percent !== null && item.security?.price_change_percent !== undefined && (
+                                  <>
+                                    {item.security.price_change_percent > 0 && (
+                                      <TrendingUp className="h-4 w-4 text-green-600" />
+                                    )}
+                                    {item.security.price_change_percent < 0 && (
+                                      <TrendingDown className="h-4 w-4 text-red-600" />
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div className="text-sm text-muted-foreground">
