@@ -1,4 +1,3 @@
-
 """
 Security Pydantic Schemas
 """
@@ -18,18 +17,18 @@ class SecurityBase(BaseModel):
 class SecurityResponse(SecurityBase):
     market_cap_formatted: str
 
-    class Config:
-        from_attributes = True
-
-class SecurityWithScore(SecurityResponse):
-    latest_score: Optional[ScoreResponse] = None
-    
-    # Live market data fields
+    # Live market data fields (shared everywhere)
     live_price: Optional[float] = None
     price_change_percent: Optional[float] = None
     live_market_cap: Optional[float] = None
     last_updated: Optional[datetime] = None
     data_source: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class SecurityWithScore(SecurityResponse):
+    latest_score: Optional[ScoreResponse] = None
 
     class Config:
         from_attributes = True

@@ -16,6 +16,7 @@ from ..services.market_data import get_market_data_service
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/securities", tags=["securities"], redirect_slashes=False)
+
 @router.get("", response_model=List[SecurityWithScore])
 async def get_securities_no_slash(
     active_only: bool = True,
@@ -28,6 +29,9 @@ async def get_securities(
     active_only: bool = True,
     db: Session = Depends(get_db)
 ):
+    """
+    Get all securities with their latest scores enriched with live market data
+    """
     # Get securities from database
     query = db.query(Security).options(selectinload(Security.scores))
     if active_only:
@@ -74,6 +78,9 @@ async def get_security(
     symbol: str,
     db: Session = Depends(get_db)
 ):
+    """
+    Get single security with latest score enriched with live market data
+    """
     security = db.query(Security).options(selectinload(Security.scores)).filter(
         Security.symbol == symbol.upper()
     ).first()

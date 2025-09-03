@@ -126,7 +126,7 @@ export class ApiClient {
 
   // Health check
   async getHealth(): Promise<{ status: string; database: string }> {
-    return this.request<{ status: string; database: string }>('/health');
+    return this.request<{ status: string; database: string }>('/api/health');
   }
 }
 

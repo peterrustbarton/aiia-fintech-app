@@ -1,4 +1,3 @@
-
 """
 Watchlists API Routes
 Endpoints for managing user watchlists and items with live market data

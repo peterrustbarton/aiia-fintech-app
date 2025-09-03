@@ -3,6 +3,12 @@ AiiA FastAPI Main Application
 Entry point for the API server
 """
 
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -71,6 +77,28 @@ async def api_health_check():
         "database": "connected" if db_status else "disconnected",
         "service": "AiiA FastAPI Backend"
     }
+
+@app.get("/api/debug/quote/{symbol}")
+async def debug_quote(symbol: str):
+    try:
+        from .services.market_data import get_market_data_service
+        from dataclasses import asdict
+        
+        svc = await get_market_data_service()
+        quote = await svc.get_enriched_quote(symbol)
+
+        # Handle serialization depending on type of object
+        if hasattr(quote, "model_dump"):   # Pydantic v2
+            return quote.model_dump()
+        elif hasattr(quote, "dict"):       # Pydantic v1
+            return quote.dict()
+        elif hasattr(quote, "__dataclass_fields__"):  # dataclass
+            return asdict(quote)
+        else:  # fallback: build manually
+            return quote.__dict__
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "trace": traceback.format_exc()}
 
 if __name__ == "__main__":
     import uvicorn
