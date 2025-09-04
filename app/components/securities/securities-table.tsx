@@ -92,26 +92,26 @@ export function SecuritiesTable({ securities, loading, onRefresh }: SecuritiesTa
   };
 
   const getScoreColor = (score?: string) => {
-    if (!score) return 'text-gray-500';
+    if (!score) return 'text-neutral';
     const numScore = parseFloat(score);
-    if (numScore >= 85) return 'text-green-600';
-    if (numScore >= 70) return 'text-blue-600';
-    if (numScore >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (numScore >= 85) return 'text-positive';
+    if (numScore >= 70) return 'text-theme-accent-primary';
+    if (numScore >= 60) return 'text-neutral';
+    return 'text-negative';
   };
 
-  const getScoreBadgeVariant = (grade: string) => {
-    if (grade.startsWith('A')) return 'default';
-    if (grade.startsWith('B')) return 'secondary';
-    if (grade.startsWith('C')) return 'outline';
-    return 'destructive';
+  const getScoreBadgeClass = (grade: string) => {
+    if (grade.startsWith('A')) return 'badge-positive';
+    if (grade.startsWith('B')) return 'badge-neutral';
+    if (grade.startsWith('C')) return 'text-text-secondary border border-theme-panel-border bg-theme-panel-hover';
+    return 'badge-negative';
   };
 
   const getChangeColor = (change?: number | null) => {
-    if (change === undefined || change === null) return 'text-gray-500';
-    if (change > 0) return 'text-green-600';
-    if (change < 0) return 'text-red-600';
-    return 'text-gray-500';
+    if (change === undefined || change === null) return 'text-neutral';
+    if (change > 0) return 'text-positive';
+    if (change < 0) return 'text-negative';
+    return 'text-neutral';
   };
 
   const formatPrice = (price?: number | null) => {
@@ -140,46 +140,43 @@ export function SecuritiesTable({ securities, loading, onRefresh }: SecuritiesTa
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Securities Dashboard</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="panel animate-pulse-glow">
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-text-primary mb-4">Securities Dashboard</h2>
           <div className="space-y-2">
             {[...Array(10)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+              <div key={i} className="h-12 rounded animate-shimmer" style={{ background: 'rgba(56, 189, 248, 0.1)' }} />
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Securities Dashboard
-            <Badge variant="outline" className="ml-auto">
+      <div className="panel hover:-translate-y-1 transition-all duration-300">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="h-5 w-5 text-theme-accent-primary" />
+            <h2 className="text-xl font-bold text-text-primary">Securities Dashboard</h2>
+            <div className="px-3 py-1 rounded-full border border-theme-panel-border text-xs text-text-secondary ml-auto">
               {securities.length} Securities
-            </Badge>
-          </CardTitle>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            </div>
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
               <Clock className="h-4 w-4" />
               {getLastUpdatedText()}
               {securities.some(s => s.data_source) && (
-                <Badge variant="outline" className="text-xs">
+                <span className="badge-positive text-xs">
                   Live Data
-                </Badge>
+                </span>
               )}
             </div>
             {onRefresh && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                className="btn-ghost text-sm"
                 onClick={() => {
                   onRefresh();
                   setLastUpdated(new Date());
@@ -188,140 +185,170 @@ export function SecuritiesTable({ securities, loading, onRefresh }: SecuritiesTa
               >
                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
                 Refresh
-              </Button>
+              </button>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('symbol')} className="h-8 p-0">
-                      Symbol <SortIcon field="symbol" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('company_name')} className="h-8 p-0">
-                      Company <SortIcon field="company_name" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('sector')} className="h-8 p-0">
-                      Sector <SortIcon field="sector" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('market_cap')} className="h-8 p-0">
-                      Market Cap <SortIcon field="market_cap" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('live_price')} className="h-8 p-0">
-                      Live Price <SortIcon field="live_price" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('price_change')} className="h-8 p-0">
-                      Change % <SortIcon field="price_change" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort('score')} className="h-8 p-0">
-                      AI Score <SortIcon field="score" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>Recommendation</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedSecurities.map((security) => (
-                  <TableRow 
-                    key={security.symbol}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedSymbol(security.symbol)}
+        </div>
+        
+        <div className="overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('symbol')}
                   >
-                    <TableCell>
-                      <div className="font-mono font-semibold text-blue-600">
-                        {security.symbol}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{security.company_name}</div>
-                    </TableCell>
-                    <TableCell>
-                      {security.sector && (
-                        <Badge variant="outline">{security.sector}</Badge>
+                    Symbol <SortIcon field="symbol" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('company_name')}
+                  >
+                    Company <SortIcon field="company_name" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('sector')}
+                  >
+                    Sector <SortIcon field="sector" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('market_cap')}
+                  >
+                    Market Cap <SortIcon field="market_cap" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('live_price')}
+                  >
+                    Live Price <SortIcon field="live_price" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('price_change')}
+                  >
+                    Change % <SortIcon field="price_change" />
+                  </button>
+                </th>
+                <th>
+                  <button 
+                    className="btn-ghost text-xs h-8 p-0"
+                    onClick={() => handleSort('score')}
+                  >
+                    AI Score <SortIcon field="score" />
+                  </button>
+                </th>
+                <th>Recommendation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedSecurities.map((security) => (
+                <tr 
+                  key={security.symbol}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedSymbol(security.symbol)}
+                >
+                  <td>
+                    <div className="font-mono font-semibold text-theme-accent-primary">
+                      {security.symbol}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="font-medium text-text-primary">{security.company_name}</div>
+                  </td>
+                  <td>
+                    {security.sector && (
+                      <span className="px-2 py-1 rounded-md border border-theme-panel-border text-xs text-text-secondary">
+                        {security.sector}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="font-medium text-text-primary">{security.market_cap_formatted}</div>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-lg text-text-primary">
+                        {formatPrice(security.live_price)}
+                      </span>
+                      {security.data_source && (
+                        <span className="px-2 py-1 rounded-md border border-theme-panel-border text-xs text-text-secondary">
+                          {security.data_source}
+                        </span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{security.market_cap_formatted}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg">
-                          {formatPrice(security.live_price)}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("font-bold text-lg", 
+                        security.price_change_percent === null || security.price_change_percent === undefined
+                          ? "text-neutral"
+                          : security.price_change_percent > 0 
+                          ? "text-positive" 
+                          : security.price_change_percent < 0
+                          ? "text-negative"
+                          : "text-neutral"
+                      )}>
+                        {formatChange(security.price_change_percent)}
+                      </span>
+                      {security.price_change_percent !== null && security.price_change_percent !== undefined && (
+                        <>
+                          {security.price_change_percent > 0 && (
+                            <TrendingUp className="h-4 w-4 text-financial-positive" />
+                          )}
+                          {security.price_change_percent < 0 && (
+                            <TrendingDown className="h-4 w-4 text-financial-negative" />
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <span className={cn("font-bold text-lg", getScoreColor(security.latest_score?.score_value))}>
+                        {security.latest_score?.score_value ? parseFloat(security.latest_score.score_value).toFixed(1) : 'N/A'}
+                      </span>
+                      {security.latest_score?.score_grade && (
+                        <span className={cn("px-2 py-1 rounded-md text-xs font-medium", getScoreBadgeClass(security.latest_score.score_grade))}>
+                          {security.latest_score.score_grade}
                         </span>
-                        {security.data_source && (
-                          <Badge variant="outline" className="text-xs">
-                            {security.data_source}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className={cn("font-bold text-lg", getChangeColor(security.price_change_percent))}>
-                          {formatChange(security.price_change_percent)}
-                        </span>
-                        {security.price_change_percent !== null && security.price_change_percent !== undefined && (
-                          <>
-                            {security.price_change_percent > 0 && (
-                              <TrendingUp className="h-4 w-4 text-green-600" />
-                            )}
-                            {security.price_change_percent < 0 && (
-                              <TrendingDown className="h-4 w-4 text-red-600" />
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className={cn("font-bold text-lg", getScoreColor(security.latest_score?.score_value))}>
-                          {security.latest_score?.score_value ? parseFloat(security.latest_score.score_value).toFixed(1) : 'N/A'}
-                        </span>
-                        {security.latest_score?.score_grade && (
-                          <Badge variant={getScoreBadgeVariant(security.latest_score.score_grade)}>
-                            {security.latest_score.score_grade}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {security.latest_score?.recommendation === 'Strong Buy' && (
-                          <TrendingUp className="h-4 w-4 text-green-600" />
-                        )}
-                        {security.latest_score?.recommendation === 'Buy' && (
-                          <TrendingUp className="h-4 w-4 text-blue-600" />
-                        )}
-                        {security.latest_score?.recommendation === 'Hold' && (
-                          <TrendingDown className="h-4 w-4 text-yellow-600" />
-                        )}
-                        <span className="text-sm font-medium">
-                          {security.latest_score?.recommendation || 'N/A'}
-                        </span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      {security.latest_score?.recommendation === 'Strong Buy' && (
+                        <TrendingUp className="h-4 w-4 text-financial-positive" />
+                      )}
+                      {security.latest_score?.recommendation === 'Buy' && (
+                        <TrendingUp className="h-4 w-4 text-theme-accent-primary" />
+                      )}
+                      {security.latest_score?.recommendation === 'Hold' && (
+                        <TrendingDown className="h-4 w-4 text-financial-neutral" />
+                      )}
+                      <span className="text-sm font-medium text-text-primary">
+                        {security.latest_score?.recommendation || 'N/A'}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {selectedSymbol && (
         <SymbolModal

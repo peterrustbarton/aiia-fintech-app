@@ -8,11 +8,13 @@ import { WatchlistManager } from '@/components/watchlists/watchlist-manager';
 
 export default function WatchlistsPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       
       <main className="container mx-auto py-6">
-        <WatchlistManager />
+        <div className="animate-fade-in-up">
+          <WatchlistManager />
+        </div>
       </main>
     </div>
   );

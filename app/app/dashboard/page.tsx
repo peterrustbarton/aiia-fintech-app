@@ -17,33 +17,35 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <Header />
       
       <main className="container mx-auto py-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Investment Dashboard</h1>
-          <p className="text-muted-foreground">
+        <div className="animate-fade-in-up">
+          <h1 className="text-3xl font-bold tracking-tight text-text-primary">Investment Dashboard</h1>
+          <p className="text-text-secondary mt-2">
             AI-powered security analysis and investment insights with live market data
           </p>
         </div>
 
         {error && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 text-destructive">
+          <div className="panel animate-fade-in-up">
+            <div className="p-6">
+              <div className="flex items-center gap-2 text-financial-negative">
                 <AlertCircle className="h-5 w-5" />
                 <span>Failed to load securities: {error.message}</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
-        <SecuritiesTable 
-          securities={securities || []} 
-          loading={isLoading} 
-          onRefresh={handleRefresh}
-        />
+        <div className="animate-fade-in-up">
+          <SecuritiesTable 
+            securities={securities || []} 
+            loading={isLoading} 
+            onRefresh={handleRefresh}
+          />
+        </div>
       </main>
     </div>
   );
