@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Security } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { SymbolModal } from './symbol-modal';
-import TradeModal from '../TradeModal'; // NEW IMPORT
+import TradeModal from '../TradeModal'; // NEW IMPORT IN PARENT DIRECTORY
 
 interface SecuritiesTableProps {
     securities: Security[];
