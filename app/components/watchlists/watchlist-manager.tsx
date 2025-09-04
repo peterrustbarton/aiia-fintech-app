@@ -149,7 +149,7 @@ export function WatchlistManager() {
           </div>
         ) : (
           watchlists?.map((watchlist) => (
-            <div key={watchlist.id} className="panel hover:-translate-y-1 transition-all duration-300 animate-fade-in-up">
+            <div key={watchlist.id} className="panel transition-all duration-300 animate-fade-in-up">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
