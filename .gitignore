@@ -2,8 +2,6 @@
 .next
 .cache
 .build
-*.env
-*.py
 *.nfs*
 **/.yarn/
 !**/.yarn/patches
