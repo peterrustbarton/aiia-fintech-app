@@ -89,7 +89,7 @@ export function SecuritiesTable({ securities, loading, onRefresh }: SecuritiesTa
         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
         return 0;
-    });
+    }); 
 
     const SortIcon = ({ field }: { field: SortField }) => {
         if (sortField !== field) return <ArrowUpDown className="h-4 w-4" />;
